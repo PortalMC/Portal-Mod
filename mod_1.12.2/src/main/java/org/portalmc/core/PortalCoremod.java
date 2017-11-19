@@ -26,7 +26,7 @@ public class PortalCoremod implements IFMLLoadingPlugin {
 
     @Override
     public String getSetupClass() {
-        return null;
+        return "org.portalmc.core.PortalStartupClass";
     }
 
     @Override

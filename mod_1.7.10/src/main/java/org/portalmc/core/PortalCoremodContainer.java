@@ -1,9 +1,9 @@
 package org.portalmc.core;
 
 import com.google.common.eventbus.EventBus;
-import net.minecraftforge.fml.common.DummyModContainer;
-import net.minecraftforge.fml.common.LoadController;
-import net.minecraftforge.fml.common.ModMetadata;
+import cpw.mods.fml.common.DummyModContainer;
+import cpw.mods.fml.common.LoadController;
+import cpw.mods.fml.common.ModMetadata;
 
 @SuppressWarnings("unused")
 public class PortalCoremodContainer extends DummyModContainer {

@@ -1,6 +1,7 @@
 package org.portalmc.core;
 
-import net.minecraftforge.fml.relauncher.IFMLCallHook;
+
+import cpw.mods.fml.relauncher.IFMLCallHook;
 
 import java.io.File;
 import java.util.Map;

@@ -46,3 +46,11 @@ processResources {
         exclude 'mcmod.info'
     }
 }
+
+jar {
+    manifest {
+        attributes "FMLCorePlugin": "org.portalmc.core.PortalCoremod"
+    }
+    //noinspection GroovyAssignabilityCheck
+    from project(":common").sourceSets.main.output.classesDir
+}

@@ -3,10 +3,7 @@ package org.portalmc.core;
 import org.portalmc.core.model.AccessToken;
 import org.portalmc.core.model.CoremodConfig;
 import org.portalmc.core.network.APIClient;
-import org.portalmc.core.ui.ConflictFrame;
-import org.portalmc.core.ui.DownloadFrame;
-import org.portalmc.core.ui.LoginFrame;
-import org.portalmc.core.ui.ProjectListFrame;
+import org.portalmc.core.ui.*;
 
 import javax.swing.*;
 import java.io.File;
@@ -93,13 +90,16 @@ class Starter {
 
     private void checkModConflict(AccessToken token, String projectId) {
         if (!modsDir.exists()) {
-            modsDir.mkdirs();
+            boolean result = modsDir.mkdirs();
+            if (!result) {
+                showError("Cannot create mods dir");
+            }
         }
 
         ArrayList<File> conflictFiles = new ArrayList<>();
         File[] files = modsDir.listFiles();
         if (files == null) {
-            //TODO:
+            showError("Cannot list up mods dir.");
             return;
         }
         for (File file : files) {
@@ -135,34 +135,47 @@ class Starter {
         if (beforeDeleteAll) {
             File[] files = modsDir.listFiles();
             if (files == null) {
-                //TODO:
+                showError("Cannot list up mods dir.");
                 return;
             }
             for (File file : files) {
-                file.delete();
+                boolean result = file.delete();
+                if (!result) {
+                    showError("Cannot delete conflicted mod file. " + file.getAbsolutePath());
+                    return;
+                }
             }
         }
         File target = new File(modsDir, "portal-" + projectId + ".jar");
         if (target.exists()) {
-            target.delete();
+            boolean result = target.delete();
+            if (!result) {
+                showError("Previous artifact file cannot be removed. " + target.getAbsolutePath());
+                return;
+            }
         }
         DownloadFrame downloadFrame = new DownloadFrame();
-        downloadFrame.setOnOkClickListener(() -> {
-            downloadFrame.setVisible(false);
-            downloadFrame.dispose();
-            countDownLatch.countDown();
-        });
         downloadFrame.setVisible(true);
         CompletableFuture.runAsync(() -> apiClient.tryStoreModJar(token, projectId, target), es)
                 .whenComplete((v, ex) -> SwingUtilities.invokeLater(() -> {
+                    downloadFrame.setVisible(false);
+                    downloadFrame.dispose();
                     if (ex == null) {
-                        downloadFrame.setVisible(false);
-                        downloadFrame.dispose();
                         countDownLatch.countDown();
                     } else {
-                        downloadFrame.setErrorMessage(ex.toString());
-                        downloadFrame.setOkButtonVisible(true);
+                        showError(ex.toString());
                     }
                 }));
+    }
+
+    private void showError(String message) {
+        ErrorFrame errorFrame = new ErrorFrame();
+        errorFrame.setErrorMessage(message);
+        errorFrame.setOnOkClickListener(() -> {
+            errorFrame.setVisible(false);
+            errorFrame.dispose();
+            countDownLatch.countDown();
+        });
+        errorFrame.setVisible(true);
     }
 }

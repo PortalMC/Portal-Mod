@@ -127,13 +127,7 @@ public class APIClient {
                 connection.setUseCaches(false);
                 connection.connect();
 
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    try (InputStream inputStream = connection.getInputStream()) {
-                        Files.copy(inputStream, target.toPath());
-                    }
-                } else {
-                    throw new RuntimeException("Response: " + connection.getResponseCode());
-                }
+                processResponse(connection, target);
             } finally {
                 if (connection != null) {
                     connection.disconnect();
@@ -141,6 +135,38 @@ public class APIClient {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void tryDownloadRedirected(URL url, File target) throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setInstanceFollowRedirects(true);
+            connection.setRequestMethod("GET");
+            connection.setUseCaches(false);
+            connection.connect();
+
+            processResponse(connection, target);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private void processResponse(HttpURLConnection connection, File target) throws IOException {
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            try (InputStream inputStream = connection.getInputStream()) {
+                Files.copy(inputStream, target.toPath());
+            }
+        } else if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+            String newUrl = connection.getHeaderField("Location");
+            tryDownloadRedirected(new URL(newUrl), target);
+        } else {
+            throw new RuntimeException("Response: " + responseCode);
         }
     }
 }

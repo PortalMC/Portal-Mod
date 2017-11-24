@@ -19,20 +19,22 @@ class Starter {
     private final CoremodConfig config;
     private final CountDownLatch countDownLatch;
     private final String minecraftVersion;
+    private final String version;
     private final File modsDir;
     private final APIClient apiClient;
 
-    private Starter(CoremodConfig config, CountDownLatch countDownLatch, String minecraftVersion, File modsDir) {
+    private Starter(CoremodConfig config, CountDownLatch countDownLatch, String minecraftVersion, String version, File modsDir) {
         this.config = config;
         this.countDownLatch = countDownLatch;
         this.minecraftVersion = minecraftVersion;
+        this.version = version;
         this.modsDir = modsDir;
         apiClient = new APIClient(config);
     }
 
-    static void start(File configFile, CountDownLatch countDownLatch, String minecraftVersion, File modsDir) throws IOException {
+    static void start(File configFile, CountDownLatch countDownLatch, String minecraftVersion, String version, File modsDir) throws IOException {
         CoremodConfig config = CoremodConfig.load(configFile);
-        Starter starter = new Starter(config, countDownLatch, minecraftVersion, modsDir);
+        Starter starter = new Starter(config, countDownLatch, minecraftVersion, version, modsDir);
         SwingUtilities.invokeLater(starter::showLoginWindow);
     }
 
@@ -103,13 +105,14 @@ class Starter {
             return;
         }
         for (File file : files) {
-            if (!file.getName().equals("portal-" + projectId + ".jar")) {
+            if (!file.getName().startsWith("portal-" + projectId + ".jar")
+                    && !file.getName().equals("portal-core-" + version + ".jar")) {
                 conflictFiles.add(file);
             }
         }
 
         if (conflictFiles.size() == 0) {
-            startDownload(token, projectId, true);
+            startDownload(token, projectId, false);
         } else {
             ConflictFrame conflictWindow = new ConflictFrame(conflictFiles);
             conflictWindow.setOnKeepClickListener(() -> {

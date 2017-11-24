@@ -22,7 +22,7 @@ public class PortalStartupClass implements IFMLCallHook {
     public Void call() throws Exception {
         System.out.println("Portal coremod for Minecraft " + PortalCoremod.MC_VERSION + " has been launched.");
         File configFile = new File(new File(mcLocation, "config"), "portal.properties");
-        Starter.start(configFile, countDownLatch, PortalCoremod.MC_VERSION, new File(mcLocation, "mods"));
+        Starter.start(configFile, countDownLatch, PortalCoremod.MC_VERSION, PortalCoremod.VERSION, new File(mcLocation, "mods"));
         countDownLatch.await();
         return null;
     }
